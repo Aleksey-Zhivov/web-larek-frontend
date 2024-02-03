@@ -83,7 +83,8 @@ yarn build
 - `deleteItemFromBasket` - для удаления конкретного товара из корзины,
 - `setCard` - для отрисовки каталога товаров,
 - `setPreview` - для открытия предпросмотра товара,
-- `setOrderData` - для установки данных по заказу,
+- `setOrderDelivery` - для установки данных по доставке заказа,
+- `setOrdersContacts` - для установки данных о контактах,
 - `checkOrdersValidation` - для валидации формы заказа.
 
 ## Компоненты представления
@@ -141,11 +142,17 @@ export interface ICard {
     price: number | null,
 }
 
-export interface IOrder {
+export interface IOrdersDelivery {
     payment: string,
+    address: string,
+}
+
+export interface IOrdersContacts {
     email: string,
     phone: string,
-    address: string,
+}
+
+export interface IOrder extends IOrdersDelivery, IOrdersContacts {
     total: number | null,
     items: CardId[],
 }

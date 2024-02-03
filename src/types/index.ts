@@ -1,4 +1,4 @@
-type CardId = string; //uuid?
+export type CardId = string; //uuid?
 
 //Интерфейсы базовых классов
 
@@ -42,11 +42,17 @@ export interface ICard {
     price: number | null,
 }
 
-export interface IOrder {
+export interface IOrdersDelivery {
     payment: string,
+    address: string,
+}
+
+export interface IOrdersContacts {
     email: string,
     phone: string,
-    address: string,
+}
+
+export interface IOrder extends IOrdersDelivery, IOrdersContacts {
     total: number | null,
     items: CardId[],
 }

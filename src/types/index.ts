@@ -24,6 +24,12 @@ export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 
 //Интерфейсы моделей данных
+export interface IAppStatus {
+    basket: string[],
+    cards: ICard[],
+    order: IOrder,
+    preview: string | null,
+}
 
 //Интерфейсы компонентов представления
 

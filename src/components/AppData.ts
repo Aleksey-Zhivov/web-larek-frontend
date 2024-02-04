@@ -32,7 +32,6 @@ export class AppStatus extends Model<IAppStatus> {
 
     addItemToBasket(item: Card) {
         this.basket.push(item);
-        this.emitChanges('count:changed', this.basket)
     }
 
     deleteItemFromBasket(item: Card) {
@@ -40,7 +39,7 @@ export class AppStatus extends Model<IAppStatus> {
         this.emitChanges('count:changed', this.basket)
     }
 
-    setCard(items: ICard[]) {
+    setCards(items: ICard[]) {
         this.cards = items.map(item => new Card(item, this.events))
         this.emitChanges('cards:changed', {cards: this.cards})
     }
@@ -52,12 +51,12 @@ export class AppStatus extends Model<IAppStatus> {
 
     setOrdersDelivery(field: keyof IOrdersDelivery, value: string) {
         this.order[field] = value;
-        this.emitChanges('order:changed', this.basket)
+        this.emitChanges('ordersDelivery:changed', this.basket)
     }
 
     setOrdersContacts(field: keyof IOrdersContacts, value: string) {
         this.order[field] = value;
-        this.emitChanges('order:changed', this.basket)
+        this.emitChanges('ordersContacts:changed', this.basket)
     }
 
     checkOrdersValidation() {

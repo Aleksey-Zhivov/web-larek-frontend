@@ -22,7 +22,12 @@ export type ApiListResponse<Type> = {
 
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
-
+export interface ILarekApi {
+    getCardsList: () => Promise<ICard[]>;
+    getCard: (id: string) => Promise<ICard>;
+    orderProducts: (order: IOrder) => Promise<IOrderSuccess>
+  }
+  
 //Интерфейсы моделей данных
 export interface IAppStatus {
     basket: string[],
@@ -32,6 +37,14 @@ export interface IAppStatus {
 }
 
 //Интерфейсы компонентов представления
+
+export type Payment = 'online' | 'cash' | '';
+
+export interface IPage {
+    counter: number;
+    catalog: HTMLElement[];
+    locked: boolean;
+}
 
 export interface ICard {
     id: CardId,
@@ -75,3 +88,11 @@ export interface IBasket {
 }
 
 export type FormErrors = Partial<Record<keyof IOrder, string>>;
+
+export interface IActions {
+    onClick: (event: MouseEvent) => void;
+}
+
+export interface ISuccessActions {
+    onClick: () => void;
+}

@@ -8,6 +8,7 @@ import { Card } from './components/Card';
 import { LarekApi } from './components/LarekApi';
 import { API_URL, CDN_URL } from './utils/constants';
 import { Modal } from './components/common/Modal';
+import { Basket } from './components/Basket';
 
 const events = new EventEmitter();
 const api = new LarekApi(CDN_URL, API_URL);
@@ -19,6 +20,7 @@ events.onAll(({eventName, data}) => {
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 
 // Модель данных приложения
 const appStatus = new AppStatus({}, events);
@@ -42,10 +44,12 @@ events.on<CatalogChangeEvent>('items:changed', () => {
   });
 });
 
+//Выбор товара
 events.on('card:select', (item: CardItem) => {
   appStatus.setPreview(item);
 });
 
+//Открытие попапа с превью
 events.on('preview:changed', (item: CardItem) => {
   const card = new Card(cloneTemplate(cardPreviewTemplate), {
     onClick: () => events.emit('card:toggle', item)
@@ -62,6 +66,24 @@ events.on('preview:changed', (item: CardItem) => {
   });
 });
 
+//Проверка нахождения товара в корзине
+events.on('item:check', (item: CardItem) => {
+  modal.close();
+  (appStatus.basket.indexOf(item) < 0) ?
+  events.emit('item:add', item) :
+  events.emit('item:delete', item);
+});
+
+//Добавление товара в заказ
+events.on('item:add', (item: CardItem) => {
+  appStatus.addItemToBasket(item);
+})
+
+//Удаление товара из заказа
+events.on('item:delete', (item: CardItem) => {
+  appStatus.deleteItemFromBasket(item);
+})
+
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {
   page.locked = true;
@@ -71,7 +93,6 @@ events.on('modal:open', () => {
 events.on('modal:close', () => {
   page.locked = false;
 });
-
 
 
 //Получение списка карточек

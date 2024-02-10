@@ -53,14 +53,14 @@ export interface IPage {
 }
 
 export interface ICard {
-    index?: string,
     id: string,
     description: string,
     image: string,
     title: string,
     category: string,
     price: number | null,
-    buttonTitle? : string;
+    count?: string,
+    buttonText? : string;
 }
 
 export interface IOrdersDelivery {

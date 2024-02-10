@@ -21,6 +21,7 @@ events.onAll(({eventName, data}) => {
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
 const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 
 // Модель данных приложения
 const appStatus = new AppStatus({}, events);
@@ -28,6 +29,7 @@ const appStatus = new AppStatus({}, events);
 // Глобальные контейнеры
 const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+const basket = new Basket(cloneTemplate(basketTemplate), events);
 
 // Изменились элементы каталога
 events.on<CatalogChangeEvent>('items:changed', () => {
@@ -40,7 +42,7 @@ events.on<CatalogChangeEvent>('items:changed', () => {
       title: item.title,
       image: item.image,
       price: item.price,
-    })
+    });
   });
 });
 
@@ -52,7 +54,12 @@ events.on('card:select', (item: CardItem) => {
 //Открытие попапа с превью
 events.on('preview:changed', (item: CardItem) => {
   const card = new Card(cloneTemplate(cardPreviewTemplate), {
-    onClick: () => events.emit('card:toggle', item)
+    onClick: () => {
+      events.emit('item:check', item);
+      card.buttonText = appStatus.basket.indexOf(item) < 0 ? 
+      'В корзину' : 
+      'Убрать из корзины';
+    }
   })
 
   modal.render({
@@ -62,13 +69,15 @@ events.on('preview:changed', (item: CardItem) => {
       image: item.image,
       description: item.description,
       price: item.price,
+      buttonText: appStatus.basket.indexOf(item) < 0 ? 
+      'В корзину' : 
+      'Убрать из корзины',
     })
-  });
+  })
 });
 
 //Проверка нахождения товара в корзине
 events.on('item:check', (item: CardItem) => {
-  modal.close();
   (appStatus.basket.indexOf(item) < 0) ?
   events.emit('item:add', item) :
   events.emit('item:delete', item);
@@ -84,6 +93,38 @@ events.on('item:delete', (item: CardItem) => {
   appStatus.deleteItemFromBasket(item);
 })
 
+//Изменение состояния заказа и счетчика
+events.on('basket:changed', (items: CardItem[]) => {
+  basket.items = items.map((item, count) => {
+    const card = new Card(cloneTemplate(cardBasketTemplate), {
+      onClick: () => {events.emit('item:delete', item)}
+    });
+    return card.render({
+      title: item.title,
+      price: item.price,
+      count: (count++).toString(),
+    });
+  });
+  let total = 0;
+  items.forEach(item => {
+    total = total + item.price;
+  });
+  basket.total = total;
+  appStatus.order.total = total;
+});
+
+//Изменение счетчика
+events.on('count:changed', () => {
+  page.counter = appStatus.basket.length;
+});
+
+//Открытие корзины
+events.on('basket:open', () => {
+  modal.render({
+    content: basket.render({})
+  });
+});
+
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {
   page.locked = true;
@@ -93,7 +134,6 @@ events.on('modal:open', () => {
 events.on('modal:close', () => {
   page.locked = false;
 });
-
 
 //Получение списка карточек
 api.getCardsList()

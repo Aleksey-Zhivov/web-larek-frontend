@@ -40,12 +40,17 @@ export class AppStatus extends Model<IAppStatus> {
     }
 
     addItemToBasket(item: CardItem) {
-        this.basket.push(item);
+        this.basket.indexOf(item) < 1 ?
+        this.basket.push(item) : 
+        false;
+        this.emitChanges('basket:changed', this.basket);
+        this.emitChanges('count:changed', this.basket);
     }
 
     deleteItemFromBasket(item: CardItem) {
-        this.basket = this.basket.filter(elem => elem != item)
-        this.emitChanges('count:changed', this.basket)
+        this.basket = this.basket.filter(elem => elem != item);
+        this.emitChanges('basket:changed', this.basket);
+        this.emitChanges('count:changed', this.basket);
     }
 
     setPayment(method: Payment) {
@@ -85,6 +90,7 @@ export class AppStatus extends Model<IAppStatus> {
 
     clearBasket() {
         this.basket = [];
-        this.emitChanges('basket:changed', this.basket)
+        this.emitChanges('basket:changed', this.basket);
+        this.emitChanges('count:changed', this.basket)
     }
 }

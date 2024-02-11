@@ -19,7 +19,7 @@ export class AppStatus extends Model<IAppStatus> {
     catalog: CardItem[];
     basket: CardItem[] = [];
     order: IOrder = {
-        payment: '',
+        payment: 'online',
         email: '',
         phone: '',
         address: '',

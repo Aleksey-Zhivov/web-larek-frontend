@@ -9,7 +9,7 @@ import { LarekApi } from './components/LarekApi';
 import { API_URL, CDN_URL } from './utils/constants';
 import { Modal } from './components/common/Modal';
 import { Basket } from './components/Basket';
-import { OrdersDelivery } from './components/OrdersDelivery';
+import { OrdersDelivery, paymentMethod } from './components/OrdersDelivery';
 import { OrdersContacts } from './components/OrdersContacts';
 import { Success } from './components/Success';
 import { IOrdersContacts, IOrdersDelivery } from './types';
@@ -34,7 +34,7 @@ const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 const ordersDelivery = new OrdersDelivery(cloneTemplate(ordersDeliveryTemplate), events, {
-  onClick: (event) => {
+  onClick: (event: Event) => {
     events.emit('payment:changed', event.target)
   }
 });
@@ -150,12 +150,10 @@ events.on('order:open', () => {
 //Изменение способа оплаты
 events.on('payment:changed', (target: HTMLElement) => {
   if(!target.classList.contains('button_alt-active')) {
-    appStatus.order.payment = 'online'
+    ordersDelivery.changeButtonsClasses();
+    appStatus.order.payment = paymentMethod[target.getAttribute('name')];
     console.log(appStatus.order)
-  } else {
-    appStatus.order.payment = 'cash'
-    console.log(appStatus.order)
-  }
+  };
 });
 
 //Изменения в поле ввода адреса
@@ -216,12 +214,12 @@ events.on('contacts:submit', () => {
         modal.close();
       }
     });
-    success.total = result.total.toString();
-    console.log(result)
-    modal.render({
-      content: success.render({})
-    });
-  })
+    console.log(result);
+      success.total = result.total.toString();
+      modal.render({
+        content: success.render({})
+      });
+    })
   .catch(error => {
       console.error(error);
   });

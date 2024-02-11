@@ -2,7 +2,7 @@ import { ICard } from "../types";
 import { ensureElement } from "../utils/utils";
 import { Component } from './base/Component';
 
- const categories: {[key: string]: string} = {
+ const categories: { [key: string]: string } = {
     "софт-скил": "card__category_soft",
     "хард-скил": "card__category_hard",
     "кнопка": "card__category_button",

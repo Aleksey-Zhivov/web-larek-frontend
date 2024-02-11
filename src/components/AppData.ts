@@ -1,4 +1,4 @@
-import { CardId, FormErrors, IAppStatus, ICard, IOrder, IOrdersContacts, IOrdersDelivery, Payment } from '../types/index';
+import { FormErrors, IAppStatus, ICard, IOrder, IOrdersContacts, IOrdersDelivery } from '../types/index';
 import { Model } from './base/Model';
 import _ from "lodash";
 
@@ -53,14 +53,11 @@ export class AppStatus extends Model<IAppStatus> {
         this.emitChanges('count:changed', this.basket);
     }
 
-    setPayment(method: Payment) {
-        this.order.payment = method;
-        this.checkDeliveryValidation();
-    }
-
     setOrdersDelivery(field: keyof IOrdersDelivery, value: string) {
-        this.checkDeliveryValidation() ? this.order[field] = value : false;
-        this.events.emit('ordersDelivery:changed', this.order)
+        this.order[field] = value;
+        this.checkDeliveryValidation() ?  
+        this.events.emit('ordersDelivery:changed', this.order) : 
+        false;
     }
 
     setOrdersContacts(field: keyof IOrdersContacts, value: string) {

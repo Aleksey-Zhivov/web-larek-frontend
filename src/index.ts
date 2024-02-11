@@ -9,17 +9,13 @@ import { LarekApi } from './components/LarekApi';
 import { API_URL, CDN_URL } from './utils/constants';
 import { Modal } from './components/common/Modal';
 import { Basket } from './components/Basket';
-import { OrdersDelivery, paymentMethod } from './components/OrdersDelivery';
+import { OrdersDelivery } from './components/OrdersDelivery';
 import { OrdersContacts } from './components/OrdersContacts';
 import { Success } from './components/Success';
 import { IOrdersContacts, IOrdersDelivery } from './types';
 
 const events = new EventEmitter();
 const api = new LarekApi(CDN_URL, API_URL);
-
-events.onAll(({eventName, data}) => {
-    console.log(eventName, data);
-})
 
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
@@ -154,10 +150,12 @@ events.on('order:open', () => {
 //Изменение способа оплаты
 events.on('payment:changed', (target: HTMLElement) => {
   if(!target.classList.contains('button_alt-active')) {
-    target.classList.add('button_alt-active');
-    appStatus.order.payment === paymentMethod[target.getAttribute('name')];
-    console.log(appStatus.order);
-  };
+    appStatus.order.payment = 'online'
+    console.log(appStatus.order)
+  } else {
+    appStatus.order.payment = 'cash'
+    console.log(appStatus.order)
+  }
 });
 
 //Изменения в поле ввода адреса
@@ -173,15 +171,16 @@ events.on('deliveryForm:changed', (errors: Partial<IOrdersDelivery>) => {
 });
 
 //Валидация формы доставки выполнена
-events.on('delivery:ready' , () => {
+events.on('ordersDelivery:changed' , () => {
   ordersDelivery.valid = true;
+  console.log(appStatus.order)
 });
 
-events.on('contacts:open', () => {
+events.on('order:submit', () => {
   modal.render({
     content: ordersContacts.render({
-      phone: '',
       email: '',
+      phone: '',
       valid: false,
       errors: [],
     })
@@ -190,15 +189,42 @@ events.on('contacts:open', () => {
 });
 
 //Изменения в полях ввода контактов
-events.on(/^order\..*:change/, (data: { field: keyof IOrdersContacts, value: string }) => {
-  appStatus.setOrdersContacts(data.field, data.value);
-});
+events.on(/^contacts\..*:change/, (data: {field: keyof IOrdersContacts, value: string}) => {
+  appStatus.setOrdersContacts(data.field, data.value)
+})
 
 //Валидация формы ввода контактов
 events.on('contactsForm:changed', (errors: Partial<IOrdersContacts>) => {
-  const { phone, email } = errors;
-  ordersContacts.valid = !phone && !email;
-  ordersContacts.errors = Object.values({phone, email}).filter(i => !!i).join('; ');
+  const { email, phone } = errors;
+  ordersContacts.valid = !email && !phone;
+  ordersContacts.errors = Object.values({email, phone}).filter(i => !!i).join('; ');
+});
+
+//Валидация формы контактов выполнена
+events.on('ordersContacts:changed' , () => {
+  ordersContacts.valid = true;
+  console.log(appStatus.order)
+});
+
+//Отправка заказа на сервер
+events.on('contacts:submit', () => {
+  api.orderProducts(appStatus.order)
+  .then(result => {
+    appStatus.clearBasket();
+    const success = new Success(cloneTemplate(successTemplate), {
+      onClick: () => {
+        modal.close();
+      }
+    });
+    success.total = result.total.toString();
+    console.log(result)
+    modal.render({
+      content: success.render({})
+    });
+  })
+  .catch(error => {
+      console.error(error);
+  });
 });
 
 // Блокируем прокрутку страницы если открыта модалка

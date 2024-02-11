@@ -1,7 +1,4 @@
-export type CardId = string; //uuid?
-
 //Типы и интерфейсы базовых классов
-
 export type EventName = string | RegExp;
 export type Subscriber = Function;
 export type EmitterEvent = {
@@ -28,7 +25,7 @@ export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 //Методы для Api
 export interface ILarekApi {
     getCardsList: () => Promise<ICard[]>;
-    getCard: (id: string) => Promise<ICard>;
+    // getCard: (id: string) => Promise<ICard>;
     orderProducts: (order: IOrder) => Promise<IOrderSuccess>
   }
   
@@ -43,8 +40,6 @@ export interface IAppStatus {
   }
 
 //Интерфейсы компонентов представления
-
-export type Payment = 'online' | 'cash' | '';
 
 export interface IPage {
     counter: number;
@@ -75,11 +70,11 @@ export interface IOrdersContacts {
 
 export interface IOrder extends IOrdersDelivery, IOrdersContacts {
     total: number | null,
-    items: CardId[],
+    items: string[],
 }
 
 export interface IOrderSuccess {
-    id: string, //uuid?
+    id: string,
     total: number | null,
 }
 

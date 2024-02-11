@@ -17,7 +17,7 @@ export class Basket extends Component<IBasket> {
 
         if (this._button) {
             this._button.addEventListener('mouseup', () => {
-                events.emit('order:open');
+                events.emit('order:open')
             });
         };
         this.items =[];

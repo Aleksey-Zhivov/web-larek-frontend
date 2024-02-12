@@ -1,6 +1,6 @@
 import './scss/styles.scss';
 
-import { AppStatus, CardItem, CatalogChangeEvent } from './components/AppData';
+import { AppStatus, CatalogChangeEvent } from './components/AppData';
 import { EventEmitter } from './components/base/events';
 import { cloneTemplate, ensureElement } from './utils/utils';
 import { Page } from './components/Page';
@@ -12,7 +12,7 @@ import { Basket } from './components/Basket';
 import { OrdersDelivery, paymentMethod } from './components/OrdersDelivery';
 import { OrdersContacts } from './components/OrdersContacts';
 import { Success } from './components/Success';
-import { IOrdersContacts, IOrdersDelivery } from './types';
+import { ICard, IOrdersContacts, IOrdersDelivery } from './types';
 
 const events = new EventEmitter();
 const api = new LarekApi(CDN_URL, API_URL);
@@ -56,12 +56,12 @@ events.on<CatalogChangeEvent>('items:changed', () => {
 });
 
 //Выбор товара
-events.on('card:select', (item: CardItem) => {
+events.on('card:select', (item: ICard) => {
   appStatus.setPreview(item);
 });
 
 //Открытие попапа с превью
-events.on('preview:changed', (item: CardItem) => {
+events.on('preview:changed', (item: ICard) => {
   const card = new Card(cloneTemplate(cardPreviewTemplate), {
     onClick: () => {
       events.emit('item:check', item);
@@ -78,7 +78,7 @@ events.on('preview:changed', (item: CardItem) => {
       image: item.image,
       description: item.description,
       price: item.price,
-      buttonText: appStatus.basket.indexOf(item) < 0 ? 
+      buttonText: appStatus.basket.indexOf(item) < 0 ?
       'В корзину' : 
       'Убрать из корзины',
     })
@@ -86,24 +86,24 @@ events.on('preview:changed', (item: CardItem) => {
 });
 
 //Проверка нахождения товара в корзине
-events.on('item:check', (item: CardItem) => {
+events.on('item:check', (item: ICard) => {
   (appStatus.basket.indexOf(item) < 0) ?
   events.emit('item:add', item) :
   events.emit('item:delete', item);
 });
 
 //Добавление товара в заказ
-events.on('item:add', (item: CardItem) => {
+events.on('item:add', (item: ICard) => {
   appStatus.addItemToBasket(item);
 })
 
 //Удаление товара из заказа
-events.on('item:delete', (item: CardItem) => {
+events.on('item:delete', (item: ICard) => {
   appStatus.deleteItemFromBasket(item);
 })
 
 //Изменение состояния заказа и счетчика
-events.on('basket:changed', (items: CardItem[]) => {
+events.on('basket:changed', (items: ICard[]) => {
   basket.items = items.map((item, count) => {
     const card = new Card(cloneTemplate(cardBasketTemplate), {
       onClick: () => {events.emit('item:delete', item)}
@@ -152,7 +152,6 @@ events.on('payment:changed', (target: HTMLElement) => {
   if(!target.classList.contains('button_alt-active')) {
     ordersDelivery.changeButtonsClasses();
     appStatus.order.payment = paymentMethod[target.getAttribute('name')];
-    console.log(appStatus.order)
   };
 });
 
@@ -171,9 +170,9 @@ events.on('deliveryForm:changed', (errors: Partial<IOrdersDelivery>) => {
 //Валидация формы доставки выполнена
 events.on('ordersDelivery:changed' , () => {
   ordersDelivery.valid = true;
-  console.log(appStatus.order)
 });
 
+//Сабмит формы доставки
 events.on('order:submit', () => {
   modal.render({
     content: ordersContacts.render({
@@ -201,7 +200,6 @@ events.on('contactsForm:changed', (errors: Partial<IOrdersContacts>) => {
 //Валидация формы контактов выполнена
 events.on('ordersContacts:changed' , () => {
   ordersContacts.valid = true;
-  console.log(appStatus.order)
 });
 
 //Отправка заказа на сервер
@@ -215,13 +213,13 @@ events.on('contacts:submit', () => {
       }
     });
     console.log(result);
-      success.total = result.total.toString();
-      modal.render({
+    success.total = result.total.toString();
+    modal.render({
         content: success.render({})
       });
     })
   .catch(error => {
-      console.error(error);
+    console.error(error);
   });
 });
 

@@ -3,21 +3,12 @@ import { Model } from './base/Model';
 import _ from "lodash";
 
 export type CatalogChangeEvent = {
-    catalog: CardItem[]
+    catalog: ICard[]
 };
 
-export class CardItem extends Model<ICard> {
-    id: string;
-    description: string;
-    image: string;
-    title: string;
-    category: string;
-    price: number | null;
-}
-
 export class AppStatus extends Model<IAppStatus> {
-    catalog: CardItem[];
-    basket: CardItem[] = [];
+    catalog: ICard[];
+    basket: ICard[] = [];
     order: IOrder = {
         payment: 'online',
         email: '',
@@ -30,16 +21,16 @@ export class AppStatus extends Model<IAppStatus> {
     formErrors: FormErrors = {}
 
     setCards(items: ICard[]) {
-        this.catalog = items.map(item => new CardItem(item, this.events))
+        this.catalog = items;
         this.emitChanges('items:changed', {cards: this.catalog})
     }
 
-    setPreview(item: CardItem) {
+    setPreview(item: ICard) {
         this.preview = item.id;
         this.emitChanges('preview:changed', item)
     }
 
-    addItemToBasket(item: CardItem) {
+    addItemToBasket(item: ICard) {
         this.basket.indexOf(item) < 1 ?
         this.basket.push(item) : 
         false;
@@ -47,7 +38,7 @@ export class AppStatus extends Model<IAppStatus> {
         this.emitChanges('count:changed', this.basket);
     }
 
-    deleteItemFromBasket(item: CardItem) {
+    deleteItemFromBasket(item: ICard) {
         this.basket = this.basket.filter(elem => elem != item);
         this.emitChanges('basket:changed', this.basket);
         this.emitChanges('count:changed', this.basket);
@@ -69,7 +60,10 @@ export class AppStatus extends Model<IAppStatus> {
 
     checkDeliveryValidation() {
         const error: typeof this.formErrors = {};
-        !this.order.address ? error.address = 'Введите адрес' : false;
+        const addresRegexp = /^[а-яё0-9,./\-/\s]+$/i;
+        if (!addresRegexp.test(this.order.address) || !this.order.address) {
+            error.address = 'Введите адрес в допустимом формате: кириллица, пробелы, запятые, точки и тире'
+        };
 
         this.formErrors = error;
         this.events.emit('deliveryForm:changed', this.formErrors)
@@ -78,9 +72,14 @@ export class AppStatus extends Model<IAppStatus> {
 
     checkContactsValidation() {
         const error: typeof this.formErrors = {};
-        !this.order.email ? error.email = 'Введите email' : false;
-        !this.order.phone ? error.phone = 'Введите номер телефона' : false;
-
+        const emailRegepx = /^[a-zA-Z0-9._]+@[a-z]+.[a-z]{2,5}$/;
+        const phoneRegexp = /^[\+78](\d){10,11}$/;
+        if (!emailRegepx.test(this.order.email) || !this.order.email) {
+            error.email = 'Введите email в формате email@email.com'
+        }
+        if (!phoneRegexp.test(this.order.phone) || !this.order.phone) {
+            error.phone = 'Введите номер телефона в формате +7ХХХХХХХХХХ или 8ХХХХХХХХХХ'
+        }
         this.formErrors = error;
         this.events.emit('contactsForm:changed', this.formErrors)
         return Object.keys(error).length === 0;
